@@ -1,0 +1,3 @@
+@echo off
+echo Starting AIna server...
+python server.py

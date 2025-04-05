@@ -8,9 +8,9 @@ style.innerHTML = `
 
 .segment-timeline{
     
-    width: 100%;
+    
     position: relative; 
-    height: 1em;
+    height: 1.6em;
 }
 
 .segment-container{
@@ -44,7 +44,7 @@ style.innerHTML = `
 .segment-timeline{
     display: inline-block;
     vertical-align: middle;
-    width: 80%;
+    width: 87%;
     background-color: #f5f5f5;
     padding: 5px;
     border-radius: 5px;
@@ -245,7 +245,7 @@ Vue.component("object-tracking-viz", {
     const component = this;
 
     this.interval_timer = setInterval(function () {
-      console.log("running");
+     
       const object_tracks = component.indexed_object_tracks;
 
       draw_bounding_boxes(object_tracks, ctx);
