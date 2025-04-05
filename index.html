@@ -1,0 +1,650 @@
+<html>
+  <head>
+    <title>AIna</title>
+    <link rel="icon" type="image/png" href="assets/Picture1.png" />
+
+    <meta
+      name="description"
+      content="Interactive visualiser for the Google Cloud Video Intelligence API."
+    />
+    <meta
+      name="keywords"
+      content="google cloud, video, intelligence, api, video intelligence api, google cloud"
+    />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    />
+    <link
+      rel="stylesheet"
+      href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css"
+    />
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router@2.0.0/dist/vue-router.js"></script>
+
+    <!-- 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-N80GH8KX9W"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-N80GH8KX9W', { client_storage: 'none' });
+
+    </script> -->
+
+    <style>
+      body {
+          color:white;
+          text-align: center;
+          min-height: 1500px;
+          min-width: 1130px;
+          background-color:black;
+          background-size:cover;
+
+      }
+
+      h1, h2, h3, h4, h5 {
+        color: rgb(84, 47, 253);
+      }
+
+      #video-conatiner {
+          position: relative;
+          width: 800px;
+          margin: 15px;
+          display: inline-block;
+          box-shadow: 0 4px 20px rgb(84, 47, 253);
+          border-radius: 8px;
+      }
+
+      #video-conatiner>canvas {
+          width: 100%;
+          position: absolute;
+          opacity: 0.8;
+          left: 0;
+          height: 100%;
+          pointer-events: none;
+          box-shadow: 0 4px 20px rgb(84, 47, 253);
+          border-radius: 8px;
+      }
+
+      video {
+          width: 100%;
+          margin: auto;
+          display: block;
+      }
+
+      video::-webkit-media-controls-fullscreen-button {
+          display: none !important;
+      }
+
+      .upload-area {
+        color:aliceblue;
+        /* display: inline-block; */
+        width: 200px;
+        /* height: 62px; */
+        border: dashed #ededed 3px;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 15px;
+        overflow: hidden;
+    }
+
+      .mdl-layout__header {
+          background-color: transparent;
+          text-size-ad;
+          color: #e0e0e0;
+          font-weight: 900;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+          padding-left: 40%;        }
+
+      #upload-data {
+          display: inline-block;
+          text-align: center;
+          vertical-align: top;
+          width: 250px;
+      }
+
+      #upload-data>p {
+          text-align: justify;
+      }
+
+      .feature-tabs {
+          margin: 30px;
+          text-align: center;
+      }
+
+      .feature-tabs>div {
+          display: inline-block;
+          font-size: 1.2em;
+          padding: 12px;
+          cursor: pointer;
+          color: #777777;
+          font-weight: 300;
+
+          border: solid #4285f4 1px;
+          border-radius: 5px;
+          margin: 5px;
+      }
+
+      .feature-tabs>div:hover {
+          background-color: #4285f41a;
+      }
+
+
+      .feature-tabs>.selected {
+          border-bottom: 2px solid #4285F4;
+      }
+
+      .feature-tabs>.disabled {
+          color: #cdcdcd;
+      }
+
+      .logo {
+          width: inherit;
+      }
+
+
+      .data-warning {
+          background-color: #ffffc3;
+          /* display: inline-block; */
+          margin: auto;
+          position: relative;
+          padding: 15px;
+          text-align: center;
+      }
+
+      .material-icons {
+          vertical-align: middle;
+          font-size: 19px;
+      }
+
+      .nav-tab>.material-icons {
+          color: #0F9D58;
+      }
+
+      .search-container {
+          margin: 20px;
+          text-align: center;
+      }
+
+      .search-input-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+      }
+
+      .search-container input {
+          width: 300px;
+          padding: 5px;
+          font-size: 16px;
+          margin-right: 10px;
+      }
+
+      .search-button {
+          padding: 5px 10px;
+          font-size: 16px;
+          background-color: #4285F4;
+          color: white;
+          border: none;
+          cursor: pointer;
+      }
+
+      .search-button:hover {
+          background-color: #3367D6;
+      }
+
+      .search-results {
+          margin-top: 10px;
+          max-height: 200px;
+          overflow-y: auto;
+          border: 1px solid #ccc;
+          border-radius: 5px;
+      }
+
+      .search-result {
+          padding: 5px;
+          cursor: pointer;
+          display: flex;
+          justify-content: space-between;
+      }
+
+      .search-result:hover {
+          background-color: #f0f0f0;
+      }
+      canvas {
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+        }
+    </style>
+  </head>
+
+  <body>
+    <div id="app" class="mdl-layout--fixed-header">
+      <canvas id="particleCanvas"></canvas>
+      <header class="relative mb-14">
+        <!-- Background Image Layer with Blur -->
+        <div
+          class="absolute inset-0 bg-[url('assets/header-bg.jpg')] bg-cover bg-center backdrop-blur-md opacity-60 z-0"
+        ></div>
+      
+        <!-- Header Content -->
+        <div class="relative z-10 bg-gray-900/70 px-6 py-4 shadow-xl border-b border-blue-900">
+          <div class="container mx-auto flex items-center justify-between">
+            <!-- Logo and Brand Name -->
+            <div class="flex items-center space-x-3">
+              <img src="assets/Picture1.png" alt="Logo" class="h-12 w-auto" />
+            </div>
+            <span class="text-3xl font-bold text-blue-400">AIna</span>
+          </div>
+        </div>
+      </header>
+      <div class="text-center mx-auto mb-4 px-4 font-extrabold">
+        <h5 class="text-3xl md:text-4xl font-extrabold mb-4 text-blue-300 leading-snug">
+          Unlock the Power of Video with AI
+        </h5>
+        
+        <p class="text-lg md:text-xl text-blue-200 leading-relaxed">
+          Annotate Video using this script right
+          <a
+            target="_blank"
+            href="https://colab.research.google.com/drive/18atVgKfkiGSTuZgTS2G27GMqmkwNmsRr?usp=sharing"
+            class="text-blue-400 underline hover:text-blue-300 transition font-semibold"
+          >
+            here
+          </a>
+          if you want to run all features at once.
+        </p>
+      </div>
+      <div id="video-conatiner">
+        <canvas id="my_canvas" width="800" height="500"></canvas>
+        <video id="video" controls autoplay></video>
+      </div>
+
+      <div 
+  id="upload-data" 
+  class="flex flex-col md:flex-row gap-8 justify-center items-center mt-16 w-full max-w-4xl mx-auto px-4"
+>
+  <!-- Video Upload -->
+  <label
+    for="video_input"
+    class="upload-area w-full md:w-80 h-48 flex flex-col justify-center items-center border-2 border-dashed border-gray-400 rounded-lg p-6 text-white bg-black/30 hover:bg-black/40 hover:border-blue-500 transition-all cursor-pointer relative overflow-hidden group"
+    ondrop="drop_video(event)"
+    ondragover="dragOver(event)"
+    ondragleave="dragLeave(event)"
+  >
+    <div class="absolute inset-0 bg-blue-500/10 scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom"></div>
+    <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h18M3 16h18"></path>
+    </svg>
+    <p class="text-base font-medium mb-2 relative z-10">Upload Your Video</p>
+    <input id="video_input" type="file" accept="video/*" class="hidden" />
+    <span class="text-sm text-gray-300 relative z-10">Drop file here or click to browse</span>
+    <span class="text-xs text-gray-400 mt-2 relative z-10">MP4, WebM, AVI, MOV, etc.</span>
+    <div id="video_preview" class="mt-2 hidden"></div>
+  </label>
+  
+  <!-- JSON Upload -->
+  <label
+    for="json_input"
+    class="upload-area w-full md:w-80 h-48 flex flex-col justify-center items-center border-2 mt-4 border-dashed border-gray-400 rounded-lg p-6 text-white bg-black/30 hover:bg-black/40 hover:border-blue-500 transition-all cursor-pointer relative overflow-hidden group"
+    ondrop="drop_json(event)"
+    ondragover="dragOver(event)"
+    ondragleave="dragLeave(event)"
+  >
+    <div class="absolute inset-0 bg-blue-500/10 scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom"></div>
+    <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+    </svg>
+    <p class="text-base font-medium mb-2 relative z-10">Upload Your .JSON</p>
+    <input id="json_input" type="file" accept="application/JSON" class="hidden" />
+    <span class="text-sm text-gray-300 relative z-10">Drop file here or click to browse</span>
+    <span class="text-xs text-gray-400 mt-2 relative z-10">Metadata or Config Files</span>
+    <div id="json_preview" class="mt-2 hidden"></div>
+  </label>
+</div>
+
+
+    <div
+    v-if="data_misaligned"
+    class="data-warning bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md shadow-sm max-w-xl mx-auto mt-4"
+    >
+    <p class="font-semibold">Data Misalignment Detected</p>
+    <p class="text-sm">
+    It looks like the JSON data doesn't align with the video file. Are you sure
+    you’ve uploaded the correct files?
+    </p>
+    </div>
+
+      <annotations-nav
+        v-bind:title_ids_dict="title_ids_dict"
+        v-bind:detected_features="detected_features"
+        v-bind:current_view="current_view"
+        v-on:nav-clicked="set_current_view"
+      >
+      </annotations-nav>
+
+      <object-tracking-viz
+        v-if="current_view == 'Object Tracking'"
+        id="object_tracks"
+        v-bind:json_data="json_data"
+        v-bind:video_info="video_info"
+        v-on:segment-clicked="jump_video"
+      ></object-tracking-viz>
+
+      <label-detection-viz
+        v-if="current_view == 'Label Detection'"
+        id="label_detection"
+        v-bind:json_data="json_data"
+        v-bind:video_info="video_info"
+        v-on:segment-clicked="jump_video"
+      ></label-detection-viz>
+
+      <shot-detection-viz
+        v-if="current_view == 'Shot Detection'"
+        id="shot_detection"
+        v-bind:json_data="json_data"
+        v-bind:video_info="video_info"
+        v-on:shot-clicked="jump_video"
+      ></shot-detection-viz>
+
+      <speech-transcription-viz
+        v-if="current_view == 'Speech Transcription'"
+        id="speech_transcription"
+        v-bind:json_data="json_data"
+        v-bind:video_info="video_info"
+        v-on:word-clicked="jump_video"
+      >
+      </speech-transcription-viz>
+
+      <person-detection-viz
+        v-if="current_view == 'Person Detection'"
+        id="person_detection"
+        v-bind:json_data="json_data"
+        v-bind:video_info="video_info"
+        v-on:segment-clicked="jump_video"
+      >
+      </person-detection-viz>
+
+      <face-detection-viz
+        v-if="current_view == 'Face Detection'"
+        id="face_detection"
+        v-bind:json_data="json_data"
+        v-bind:video_info="video_info"
+        v-on:segment-clicked="jump_video"
+      >
+      </face-detection-viz>
+
+      <logo-recognition-viz
+        v-if="current_view == 'Logo Recognition'"
+        id="logo_recognition"
+        v-bind:json_data="json_data"
+        v-bind:video_info="video_info"
+        v-on:segment-clicked="jump_video"
+      >
+      </logo-recognition-viz>
+
+      <text-detection-viz
+        v-if="current_view == 'Text Detection'"
+        id="text_detection"
+        v-bind:json_data="json_data"
+        v-bind:video_info="video_info"
+        v-on:segment-clicked="jump_video"
+      >
+      </text-detection-viz>
+
+      <explicit-content-detection-viz
+        v-if="current_view == 'Explicit Content Detection'"
+        id="explicit_content_detection"
+        v-bind:json_data="json_data"
+        v-bind:video_info="video_info"
+        v-on:shot-clicked="jump_video"
+      >
+      </explicit-content-detection-viz>
+
+      <search-component
+        v-bind:json_data="json_data"
+        v-on:jump-to-time="jump_video"
+      ></search-component>
+    </div>
+
+    <script src="utils/utils.js"></script>
+
+    <script src="components/object_tracking.js"></script>
+    <script src="components/label_detection.js"></script>
+    <script src="components/shot_detection.js"></script>
+    <script src="components/speech_transcription.js"></script>
+    <script src="components/person_detection.js"></script>
+    <script src="components/face_detection.js"></script>
+    <script src="components/logo_recognition.js"></script>
+    <script src="components/text_detection.js"></script>
+    <script src="components/explicit_content_detection.js"></script>
+    <script src="components/search.js"></script>
+
+    <script>
+      function jump_video(time) {
+        const video = document.querySelector("video");
+        video.currentTime = time;
+        video.play();
+      }
+
+      // define component
+      Vue.component("annotations-nav-tab", {
+        props: ["title", "current_view", "data_id", "detected_features"],
+        computed: {
+          has_data: function () {
+            return this.detected_features.includes(this.data_id);
+          },
+        },
+        template: `
+            <div class="nav-tab" v-bind:class="{selected:current_view == title, disabled:(!has_data)}">{{title}}
+                <span v-if="has_data" class="material-icons">
+                    check_circle
+                </span>
+            </div>
+            `,
+      });
+
+      Vue.component("annotations-nav", {
+        props: ["title_ids_dict", "current_view", "detected_features"],
+        methods: {
+          nav_clicked: function (title) {
+            this.$emit("nav-clicked", title);
+          },
+        },
+        template: `
+            <div class="feature-tabs">
+                <annotations-nav-tab v-for="id, title in title_ids_dict"
+                    v-bind:title="title" v-bind:data_id="id"
+                    v-bind:detected_features="detected_features" v-bind:current_view="current_view"
+                    v-on:click.native="nav_clicked(title)">
+                </annotations-nav-tab>
+            </div>
+            `,
+      });
+
+      var router = new VueRouter({
+        mode: "history",
+        // routes: { path: '/match/:id', component: test_com}
+      });
+
+      var app = new Vue({
+        router,
+        el: "#app",
+        data: {
+          json_data: {},
+          video_info: { width: 800, height: 500, length: 252 },
+          video_length: 252,
+          current_view: "Label Detection",
+          title_ids_dict: {
+            "Label Detection": "shot_label_annotations",
+            "Shot Detection": "shot_annotations",
+            "Object Tracking": "object_annotations",
+            "Person Detection": "person_detection_annotations",
+            "Face Detection": "face_detection_annotations",
+            "Logo Recognition": "logo_recognition_annotations",
+            "Speech Transcription": "speech_transcriptions",
+            "Text Detection": "text_annotations",
+            "Explicit Content Detection": "explicit_annotation",
+          },
+        },
+        methods: {
+          jump_video: function (event_data) {
+            document
+              .querySelector("video")
+              .scrollIntoView({ behavior: "smooth", block: "center" });
+            jump_video(event_data.seconds);
+          },
+          set_current_view: function (new_view) {
+            this.current_view = new_view;
+            router.push({ hash: "#" + new_view });
+          },
+        },
+        computed: {
+          data_misaligned: function () {
+            console.log("delt");
+            if (this.json_data)
+              if (this.json_data.annotation_results) {
+                const delta =
+                  this.video_info.length -
+                  this.json_data.annotation_results[0].segment.end_time_offset
+                    .seconds;
+                console.log("delt", delta);
+                if (Math.abs(delta) > 2) {
+                  return true;
+                }
+              }
+            return false;
+          },
+          detected_features: function () {
+            var features = [];
+
+            if (!this.json_data.annotation_results) return features;
+
+            this.json_data.annotation_results.forEach((annotations) => {
+              console.log(Object.keys(annotations));
+              features = features.concat(Object.keys(annotations));
+            });
+
+            return features;
+          },
+        },
+      });
+
+      const URL = window.URL || window.webkitURL;
+
+      function fetch_json(url) {
+        var json = null;
+        $.ajax({
+          async: false,
+          url: url,
+          dataType: "json",
+          success: function (data) {
+            json = data;
+          },
+        });
+        return json;
+      }
+
+      function load_video_from_url(url) {
+        video.src = url;
+      }
+
+      function load_video_dragged(event) {
+        const file = this.files[0];
+        const file_url = URL.createObjectURL(file);
+        load_video_from_url(file_url);
+      }
+
+      function load_json_from_url(url) {
+        var json = null;
+        $.ajax({
+          async: false,
+          url: url,
+          dataType: "json",
+          success: function (data) {
+            json = data;
+          },
+        });
+        json_data = json;
+
+        console.log(json_data);
+        app.json_data = json_data;
+
+        console.log("keys ->>", Object.keys(json_data));
+        // check validity of json
+        if (!("annotation_results" in json_data)) {
+          alert(
+            "⚠️ Sorry, json output from shell not supported ⚠️ To fix set the 'output_uri' configuration when calling the Video Intelligence API so that it outputs a .json file to Google Cloud Storage, and then download that .json file. Find links to example script at the top right of the screen."
+          );
+          json_input.value = null;
+        }
+      }
+
+      function load_json_dragged(event) {
+        const file = this.files[0];
+        const file_url = URL.createObjectURL(file);
+        load_json_from_url(file_url);
+      }
+
+      var json_data = {};
+      const video = document.getElementById("video");
+      const video_input = document.getElementById("video_input");
+      const json_input = document.getElementById("json_input");
+
+      video.oncanplay = function () {
+        console.log(
+          "Can start playing video",
+          video.duration,
+          video.videoHeight,
+          video.videoWidth
+        );
+        app.video_info.length = video.duration;
+        app.video_length.duration;
+        app.video_info.height = 500;
+        app.video_info.width = 800;
+      };
+
+      function drag_enter(ev) {
+        ev.preventDefault();
+      }
+
+      function drop_video(ev) {
+        ev.preventDefault();
+        video_input.files = ev.dataTransfer.files;
+        video_input.dispatchEvent(new Event("change"));
+      }
+
+      function drop_json(ev) {
+        ev.preventDefault();
+        json_input.files = ev.dataTransfer.files;
+        json_input.dispatchEvent(new Event("change"));
+      }
+
+      video_input.addEventListener("change", load_video_dragged, false);
+      json_input.addEventListener("change", load_json_dragged, false);
+
+      load_json_from_url("assets/test_json.json");
+      load_video_from_url("assets/test_video.mp4");
+
+      // check for hash code in url
+
+      if (app.$route.hash) {
+        const hash_value = decodeURI(app.$route.hash.substring(1));
+        if (hash_value in app.title_ids_dict) {
+          app.current_view = hash_value;
+        }
+      }
+    </script>
+    <script src="components/particles.js"></script>
+  </body>
+</html>
